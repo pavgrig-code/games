@@ -101,8 +101,11 @@
   header .spacer{flex:1;}
   .icon-btn{
     font-family:inherit; font-size:18px; background:#ffffffd9; border:none; border-radius:12px;
-    padding:5px 10px; cursor:pointer; box-shadow:0 2px 0 rgba(36,59,83,.12);
+    padding:5px 10px; cursor:pointer; box-shadow:0 2px 0 rgba(36,59,83,.12); position:relative;
   }
+  .icon-btn.off{opacity:.55;}
+  .icon-btn.off:after{content:''; position:absolute; left:6px; right:6px; top:50%; height:3px;
+    background:#E63E50; border-radius:2px; transform:rotate(-20deg);}
   #track{
     position:relative; height:46px; margin:2px 10px 6px; border-radius:12px; overflow:hidden;
     background:#3E4C63;
@@ -341,6 +344,7 @@
     <div class="stat">⚽ <span id="goals">0</span></div>
     <div class="stat">🏎️ Lv <span id="level">1</span></div>
     <div class="spacer"></div>
+    <button class="icon-btn" id="musicBtn" title="Music on or off">🎵</button>
     <button class="icon-btn" id="muteBtn" title="Sound on or off">🔊</button>
   </header>
   <div id="track">
@@ -469,6 +473,117 @@ var snd={
   lap:function(){ tone(440,.12,'square',0,.07); tone(440,.12,'square',.16,.07); },
   goal:function(){ [392,392,392,523,659,784].forEach(function(f,i){ tone(f,i<3?.12:.24,'triangle',i*.14); }); }
 };
+
+/* ---------- background music: original tune with a retro platformer bounce ---------- */
+var musicOn=true, musicTimer=null, musicGain=null, nextNoteTime=0, musicStep=0, noiseBuf=null;
+var STEP=60/170/2; /* eighth notes at a zippy 170 bpm */
+var ROOTS=[48,48,41,43]; /* C C F G, one bar each */
+var BASSP=[0,null,null,12,null,7,null,12]; /* syncopated bass bounce */
+var MELA=[
+  72,null,76,null, 79,76,null,74,
+  76,74,72,null, 74,null,79,null,
+  77,null,81,79, 77,null,76,77,
+  79,78,77,null, 74,71,74,null
+];
+var MELB=[
+  null,76,79,null, 84,null,79,76,
+  77,76,75,76, null,72,74,76,
+  77,null,81,null, 84,81,79,77,
+  79,null,74,76, 78,79,null,null
+];
+var SCALE=[0,2,4,5,7,9,11];
+function thirdBelow(m){
+  var pc=((m%12)+12)%12;
+  var ix=SCALE.indexOf(pc);
+  if(ix<0) return m-3;
+  var drop=(pc-SCALE[(ix+5)%7]+12)%12;
+  return m-drop;
+}
+function midiF(m){ return 440*Math.pow(2,(m-69)/12); }
+function mnote(m,t,d,type,vol){
+  var o=actx.createOscillator(), g=actx.createGain();
+  o.type=type; o.frequency.value=midiF(m);
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol,t+0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  o.connect(g); g.connect(musicGain);
+  o.start(t); o.stop(t+d+0.05);
+}
+function getNoise(){
+  if(!noiseBuf){
+    noiseBuf=actx.createBuffer(1,Math.floor(actx.sampleRate*0.1),actx.sampleRate);
+    var d=noiseBuf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+  }
+  return noiseBuf;
+}
+function hat(t,vol){
+  var s=actx.createBufferSource(); s.buffer=getNoise();
+  var f=actx.createBiquadFilter(); f.type='highpass'; f.frequency.value=6500;
+  var g=actx.createGain();
+  g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.04);
+  s.connect(f); f.connect(g); g.connect(musicGain);
+  s.start(t); s.stop(t+0.05);
+}
+function kick(t){
+  var o=actx.createOscillator(), g=actx.createGain();
+  o.type='sine';
+  o.frequency.setValueAtTime(130,t);
+  o.frequency.exponentialRampToValueAtTime(45,t+0.12);
+  g.gain.setValueAtTime(0.10,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.14);
+  o.connect(g); g.connect(musicGain);
+  o.start(t); o.stop(t+0.16);
+}
+function snare(t){
+  var s=actx.createBufferSource(); s.buffer=getNoise();
+  var f=actx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1900; f.Q.value=0.8;
+  var g=actx.createGain();
+  g.gain.setValueAtTime(0.05,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.09);
+  s.connect(f); f.connect(g); g.connect(musicGain);
+  s.start(t); s.stop(t+0.1);
+}
+function scheduleMusic(){
+  if(!actx) return;
+  while(nextNoteTime<actx.currentTime+0.4){
+    var bar=Math.floor(musicStep/8)%4;
+    var pos=musicStep%8;
+    var loopPos=musicStep%32;
+    var root=ROOTS[bar];
+    /* NES style kit: ticking hats, thump on 1, snap on 3 */
+    hat(nextNoteTime,(pos%2===1)?0.05:0.03);
+    if(pos===0) kick(nextNoteTime);
+    if(pos===4) snare(nextNoteTime);
+    /* staccato triangle bass with syncopated pushes */
+    var bp=BASSP[pos];
+    if(bp!==null){ mnote(root+bp,nextNoteTime,STEP*0.5,'triangle',0.11); }
+    /* two square wave voices: melody plus a harmony a third below */
+    var pat=(Math.floor(musicStep/32)%2===0)?MELA:MELB;
+    var n=pat[loopPos];
+    if(n){
+      mnote(n,nextNoteTime,STEP*0.85,'square',0.045);
+      mnote(thirdBelow(n),nextNoteTime,STEP*0.85,'square',0.026);
+    }
+    nextNoteTime+=STEP;
+    musicStep++;
+  }
+}
+function musicVolume(){ return (muted||!musicOn)?0:0.5; }
+function setMusicVolume(){
+  if(musicGain&&actx) musicGain.gain.setTargetAtTime(musicVolume(),actx.currentTime,0.05);
+}
+function startMusic(){
+  if(musicTimer||!actx) return;
+  if(!musicGain){ musicGain=actx.createGain(); musicGain.connect(actx.destination); }
+  musicGain.gain.value=musicVolume();
+  nextNoteTime=actx.currentTime+0.1;
+  musicTimer=setInterval(scheduleMusic,150);
+}
+function stopMusic(){
+  if(musicTimer){ clearInterval(musicTimer); musicTimer=null; }
+}
 
 /* ---------- geometry ---------- */
 function metrics(){
@@ -820,6 +935,7 @@ $('allBtn').addEventListener('click',function(){
 $('startBtn').addEventListener('click',function(){
   if(tables.size===0) return;
   ensureAudio();
+  startMusic();
   gen++;
   S=freshState();
   $('startScreen').classList.add('hidden');
@@ -834,6 +950,7 @@ $('startBtn').addEventListener('click',function(){
 $('homeBtn').addEventListener('click',function(){
   if(!S) return;
   stopFall();
+  stopMusic();
   S.phase='done';
   gen++;
   $('goalOverlay').classList.add('hidden');
@@ -844,6 +961,13 @@ $('homeBtn').addEventListener('click',function(){
 $('muteBtn').addEventListener('click',function(){
   muted=!muted;
   $('muteBtn').textContent=muted?'🔇':'🔊';
+  setMusicVolume();
+});
+$('musicBtn').addEventListener('click',function(){
+  ensureAudio();
+  musicOn=!musicOn;
+  $('musicBtn').classList.toggle('off',!musicOn);
+  setMusicVolume();
 });
 document.addEventListener('keydown',function(e){
   if(S&&S.phase==='falling'&&['1','2','3','4'].indexOf(e.key)>-1){
@@ -852,12 +976,18 @@ document.addEventListener('keydown',function(e){
 });
 document.addEventListener('visibilitychange',function(){
   if(!S) return;
-  if(document.hidden&&S.phase==='falling'){
-    S.pausedAt=performance.now(); stopFall(); S.phase='paused';
-  } else if(!document.hidden&&S.phase==='paused'){
-    S.fallStart+=performance.now()-S.pausedAt;
-    S.phase='falling';
-    S.raf=requestAnimationFrame(fall);
+  if(document.hidden){
+    stopMusic();
+    if(S.phase==='falling'){
+      S.pausedAt=performance.now(); stopFall(); S.phase='paused';
+    }
+  } else {
+    if(S.phase!=='done'&&!$('gameScreen').classList.contains('hidden')) startMusic();
+    if(S.phase==='paused'){
+      S.fallStart+=performance.now()-S.pausedAt;
+      S.phase='falling';
+      S.raf=requestAnimationFrame(fall);
+    }
   }
 });
 window.addEventListener('resize',function(){
