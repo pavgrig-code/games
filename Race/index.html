@@ -44,8 +44,10 @@
   .brand{display:flex;align-items:center;gap:12px}
   .logo{width:56px;height:56px;border-radius:18px;background:linear-gradient(145deg,var(--blue),var(--purple));display:grid;place-items:center;color:white;font-weight:1000;font-size:22px;box-shadow:var(--shadow);transform:rotate(-4deg)}
   h1{font-size:clamp(22px,4vw,36px);margin:0;letter-spacing:-1px}.sub{font-size:13px;opacity:.7;margin-top:2px}
-  .soundBtn,.smallBtn{border:0;border-radius:14px;background:#fff;padding:10px 13px;box-shadow:var(--shadow);cursor:pointer;font-weight:850;color:var(--ink)}
-  .soundBtn:hover,.smallBtn:hover{transform:translateY(-1px)}
+  .audioControls{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .soundBtn,.musicBtn,.smallBtn{border:0;border-radius:14px;background:#fff;padding:10px 13px;box-shadow:var(--shadow);cursor:pointer;font-weight:850;color:var(--ink)}
+  .soundBtn:hover,.musicBtn:hover,.smallBtn:hover{transform:translateY(-1px)}
+  .musicBtn.off{opacity:.72;background:#f2f4f7}
 
   .layout{display:grid;grid-template-columns:280px 1fr 280px;gap:14px;align-items:stretch}
   .card{background:var(--panel);border:3px solid #ffffffaa;border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(6px)}
@@ -135,7 +137,8 @@
     .logo{width:44px;height:44px;min-width:44px;border-radius:14px;font-size:20px}
     h1{font-size:clamp(20px,6vw,27px);line-height:1.05;letter-spacing:-.7px}
     .sub{display:none}
-    .soundBtn{padding:8px 10px;min-width:78px;white-space:nowrap;border-radius:12px}
+    .audioControls{gap:6px}
+    .soundBtn,.musicBtn{padding:8px 9px;min-width:72px;white-space:nowrap;border-radius:12px;font-size:13px}
     .layout{gap:9px}
     .card{border-radius:19px}
     .center{padding:9px;overflow:visible}
@@ -188,7 +191,7 @@
 
   @media(max-width:390px){
     .app{padding-left:7px;padding-right:7px}
-    .soundBtn{font-size:12px;min-width:70px;padding:7px 8px}
+    .soundBtn,.musicBtn{font-size:11px;min-width:62px;padding:7px 7px}
     .questionZone{padding:10px}
     .fallLane{min-height:152px}
     .fallBlock{padding:12px 10px}
@@ -228,7 +231,10 @@
       <div class="logo">×</div>
       <div><h1>Vanya's Math Adventure</h1><div class="sub">Race • Build • Stack • Score goals • Master multiplication & division</div></div>
     </div>
-    <button class="soundBtn" id="soundBtn" aria-label="Toggle sound">🔊 Sound</button>
+    <div class="audioControls">
+      <button class="musicBtn" id="musicBtn" aria-label="Toggle background music" aria-pressed="true">🎵 Music</button>
+      <button class="soundBtn" id="soundBtn" aria-label="Toggle game sounds" aria-pressed="true">🔊 Sound</button>
+    </div>
   </div>
 
   <div class="layout">
@@ -355,11 +361,13 @@
     a: 2,
     b: 3,
     sound: true,
+    music: true,
     locked: false,
     wrongThisQuestion: 0,
     filledCells: 0,
     bricks: 0,
     operation: 'multiply',
+    playing: false,
     records: { topScore: 0, strikesBestCorrect: 0, strikesBestScore: 0, fixedBest: {10:0,15:0,20:0} }
   };
 
@@ -369,7 +377,7 @@
     single: $('#singleMode'), mixed: $('#mixedMode'), round: $('#roundBadge'), level: $('#levelBadge'), progress: $('#progressBar'),
     equation: $('#equation'), answers: $('#answerGrid'), hint: $('#hintText'), hintBtn: $('#hintBtn'), block: $('#fallBlock'), bubble: $('#bubble'),
     car: $('#car'), board: $('#board'), brickStack: $('#brickStack'), brickLabel: $('#brickLabel'), ball: $('#ball'), goalMsg: $('#goalMsg'),
-    startOverlay: $('#startOverlay'), winOverlay: $('#winOverlay'), startBtn: $('#startBtn'), againBtn: $('#againBtn'), soundBtn: $('#soundBtn'),
+    startOverlay: $('#startOverlay'), winOverlay: $('#winOverlay'), startBtn: $('#startBtn'), againBtn: $('#againBtn'), soundBtn: $('#soundBtn'), musicBtn: $('#musicBtn'),
     winTitle: $('#winTitle'), winText: $('#winText'), bestScore: $('#bestScore'), bestRun: $('#bestRun'), bestBanner: $('#bestBanner')
   };
 
@@ -610,6 +618,8 @@
   }
 
   function finish(){
+    state.playing=false;
+    stopBackgroundMusic();
     const acc=state.attempts?Math.round(state.correct/state.attempts*100):100;
     const isNewRecord=updateRecords();
     if(state.challenge==='strikes'){
@@ -626,9 +636,11 @@
   }
 
   function reset(){
-    Object.assign(state,{q:0,correct:0,attempts:0,streak:0,score:0,errors:0,locked:false,wrongThisQuestion:0,filledCells:0,bricks:0});
+    Object.assign(state,{q:0,correct:0,attempts:0,streak:0,score:0,errors:0,locked:false,wrongThisQuestion:0,filledCells:0,bricks:0,playing:true});
     updateStats(); initBoard(); els.brickStack.innerHTML=''; els.brickLabel.textContent='0 bricks'; els.car.style.left='8px'; els.progress.style.width='0';
-    els.winOverlay.classList.remove('show'); els.startOverlay.style.display='none'; makeQuestion();
+    els.winOverlay.classList.remove('show'); els.startOverlay.style.display='none';
+    startBackgroundMusic();
+    makeQuestion();
   }
 
   function confetti(target,count=10){
@@ -675,6 +687,143 @@
     src.connect(g); g.connect(ctx.destination); src.start(start);
   }
 
+  // Original retro-platformer music performed with a balalaika-inspired sound.
+  // The melody is newly composed: quick plucked phrases, open-fifth drones and
+  // short tremolo bursts create a folk flavor without quoting familiar songs.
+  let musicTimer=null;
+  let musicStep=0;
+  const musicNodes=new Set();
+
+  // E-Dorian-ish palette: bright enough for a platform game, with a folk-like edge.
+  // Each bar is an original phrase rather than a traditional melody.
+  const musicBars=[
+    {
+      lead:[659.25,783.99,739.99,987.77,880.00,739.99,587.33,659.25],
+      bass:[164.81,246.94,220.00,246.94],
+      drone:[329.63,493.88]
+    },
+    {
+      lead:[739.99,880.00,659.25,1108.73,987.77,783.99,739.99,880.00],
+      bass:[146.83,220.00,164.81,246.94],
+      drone:[293.66,440.00]
+    },
+    {
+      lead:[783.99,659.25,880.00,987.77,739.99,1174.66,880.00,739.99],
+      bass:[174.61,261.63,164.81,246.94],
+      drone:[349.23,523.25]
+    },
+    {
+      lead:[659.25,987.77,880.00,739.99,783.99,587.33,739.99,659.25],
+      bass:[164.81,246.94,146.83,220.00],
+      drone:[329.63,493.88]
+    }
+  ];
+
+  function musicNote(freq,dur=.16,volume=.022,delay=0,type='triangle'){
+    if(!state.sound || !state.music || !state.playing || !freq) return;
+    const ctx=getAudio(); if(!ctx) return;
+    const start=ctx.currentTime+delay;
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type;
+    o.frequency.setValueAtTime(freq,start);
+    g.gain.setValueAtTime(.0001,start);
+    g.gain.linearRampToValueAtTime(volume,start+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,start+dur);
+    o.connect(g); g.connect(ctx.destination);
+    musicNodes.add(o);
+    o.onended=()=>musicNodes.delete(o);
+    o.start(start); o.stop(start+dur+.025);
+  }
+
+  function balalaikaPluck(freq,dur=.16,volume=.055,delay=0,accent=1){
+    if(!state.sound || !state.music || !state.playing || !freq) return;
+    const ctx=getAudio(); if(!ctx) return;
+    const start=ctx.currentTime+delay;
+
+    const body=ctx.createOscillator();
+    const sparkle=ctx.createOscillator();
+    const bodyFilter=ctx.createBiquadFilter();
+    const sparkleFilter=ctx.createBiquadFilter();
+    const g=ctx.createGain();
+
+    body.type='sawtooth';
+    body.frequency.setValueAtTime(freq,start);
+    sparkle.type='triangle';
+    sparkle.frequency.setValueAtTime(freq*2,start);
+
+    // Thin wooden-string body + a brief high harmonic at the attack.
+    bodyFilter.type='bandpass';
+    bodyFilter.frequency.setValueAtTime(Math.min(3400,Math.max(950,freq*3.1)),start);
+    bodyFilter.Q.setValueAtTime(1.25,start);
+    sparkleFilter.type='highpass';
+    sparkleFilter.frequency.setValueAtTime(1700,start);
+
+    g.gain.setValueAtTime(.0001,start);
+    g.gain.linearRampToValueAtTime(volume*accent,start+.004);
+    g.gain.exponentialRampToValueAtTime(Math.max(.0001,volume*.21),start+dur*.34);
+    g.gain.exponentialRampToValueAtTime(.0001,start+dur);
+
+    body.connect(bodyFilter); bodyFilter.connect(g);
+    sparkle.connect(sparkleFilter); sparkleFilter.connect(g);
+    g.connect(ctx.destination);
+
+    musicNodes.add(body); musicNodes.add(sparkle);
+    body.onended=()=>musicNodes.delete(body);
+    sparkle.onended=()=>musicNodes.delete(sparkle);
+    body.start(start); sparkle.start(start);
+    body.stop(start+dur+.025); sparkle.stop(start+Math.min(dur,.075));
+  }
+
+  function balalaikaTremolo(freq,delay=0,volume=.036){
+    // Three very short re-picks imitate the rapid wrist tremolo associated with balalaika.
+    balalaikaPluck(freq,.072,volume,delay,1.0);
+    balalaikaPluck(freq,.068,volume*.88,delay+.062,.94);
+    balalaikaPluck(freq,.076,volume*.82,delay+.123,.90);
+  }
+
+  function scheduleMusicBar(){
+    if(!state.sound || !state.music || !state.playing) return;
+    const bar=musicBars[musicStep % musicBars.length];
+
+    // The main tune is now plucked rather than played by a separate square-wave lead.
+    bar.lead.forEach((freq,i)=>{
+      const accent=(i===0 || i===4) ? 1.08 : .92;
+      balalaikaPluck(freq,.155,.061,i*.22,accent);
+    });
+
+    // Open-fifth-style drone alternates underneath, a common string-instrument texture.
+    for(let i=0;i<4;i++){
+      const d=bar.drone[i%2];
+      balalaikaPluck(d,.13,.025,i*.44+.105,.82);
+    }
+
+    // Simple game-like bass pulse keeps the platformer momentum.
+    bar.bass.forEach((freq,i)=>musicNote(freq,.30,.030,i*.44,'triangle'));
+
+    // Tiny 8-bit sparkle on two offbeats keeps a retro-game character without taking over.
+    musicNote(bar.lead[2]*2,.055,.010,.49,'square');
+    musicNote(bar.lead[6]*2,.055,.010,1.37,'square');
+
+    // Every other bar ends with a quick plucked flourish rather than a quoted folk lick.
+    if(musicStep%2===1){
+      balalaikaTremolo(bar.lead[7],1.49,.035);
+    }
+    musicStep++;
+  }
+
+  function startBackgroundMusic(){
+    stopBackgroundMusic();
+    if(!state.sound || !state.music || !state.playing) return;
+    scheduleMusicBar();
+    musicTimer=setInterval(scheduleMusicBar,1760);
+  }
+
+  function stopBackgroundMusic(){
+    if(musicTimer){ clearInterval(musicTimer); musicTimer=null; }
+    musicNodes.forEach(node=>{ try{ node.stop(); }catch(e){} });
+    musicNodes.clear();
+  }
+
   function playRegularSound(name){
     switch(name){
       case 'click':
@@ -718,7 +867,31 @@
   els.hintBtn.addEventListener('click',()=>{els.hint.textContent=hintText(); soundEffect('hint');});
   els.single.addEventListener('click',()=>{soundEffect('click');state.mode='single';els.single.classList.add('active');els.mixed.classList.remove('active');els.bubble.innerHTML=`One-family mode! We'll practice <strong>×${state.table}</strong> and matching division facts.`;});
   els.mixed.addEventListener('click',()=>{soundEffect('click');state.mode='mixed';els.mixed.classList.add('active');els.single.classList.remove('active');els.bubble.innerHTML=`Mixed mode! <strong>Multiplication and division from 2 to 12.</strong> Let's go!`;});
-  els.soundBtn.addEventListener('click',()=>{state.sound=!state.sound;els.soundBtn.textContent=state.sound?'🔊 Sound':'🔇 Sound';if(state.sound) soundEffect('click');});
+  els.soundBtn.addEventListener('click',()=>{
+    state.sound=!state.sound;
+    els.soundBtn.textContent=state.sound?'🔊 Sound':'🔇 Sound';
+    els.soundBtn.setAttribute('aria-pressed',String(state.sound));
+    if(state.sound){
+      soundEffect('click');
+      if(state.playing && state.music) startBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
+    }
+  });
+
+  els.musicBtn.addEventListener('click',()=>{
+    state.music=!state.music;
+    els.musicBtn.textContent=state.music?'🎵 Music':'🔇 Music';
+    els.musicBtn.classList.toggle('off',!state.music);
+    els.musicBtn.setAttribute('aria-pressed',String(state.music));
+    if(state.music){
+      if(state.sound) soundEffect('click');
+      if(state.playing && state.sound) startBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
+      if(state.sound) soundEffect('click');
+    }
+  });
   document.querySelectorAll('#goalChoice button').forEach(b=>b.addEventListener('click',()=>{
     soundEffect('click');
     if(b.dataset.challenge==='strikes'){
@@ -730,7 +903,13 @@
     }
     document.querySelectorAll('#goalChoice button').forEach(x=>x.classList.toggle('active',x===b));
   }));
-  els.startBtn.addEventListener('click',()=>{soundEffect('start');reset();}); els.againBtn.addEventListener('click',()=>{soundEffect('click');els.winOverlay.classList.remove('show');els.startOverlay.style.display='grid';});
+  els.startBtn.addEventListener('click',()=>{soundEffect('start');reset();});
+  els.againBtn.addEventListener('click',()=>{soundEffect('click');state.playing=false;stopBackgroundMusic();els.winOverlay.classList.remove('show');els.startOverlay.style.display='grid';});
+
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden) stopBackgroundMusic();
+    else if(state.playing && state.sound && state.music) startBackgroundMusic();
+  });
 
   initPicker(); initBoard(); loadRecords(); makeAnswers(6);
 })();
