@@ -474,24 +474,26 @@ var snd={
   goal:function(){ [392,392,392,523,659,784].forEach(function(f,i){ tone(f,i<3?.12:.24,'triangle',i*.14); }); }
 };
 
-/* ---------- background music: original tune with a retro platformer bounce ---------- */
-var musicOn=true, musicTimer=null, musicGain=null, nextNoteTime=0, musicStep=0, noiseBuf=null;
+/* ---------- background music: original tune, platformer rhythm played balalaika style ---------- */
+var musicOn=true, musicTimer=null, musicGain=null, nextNoteTime=0, musicStep=0, noiseBuf=null, lastMel=69;
 var STEP=60/170/2; /* eighth notes at a zippy 170 bpm */
-var ROOTS=[48,48,41,43]; /* C C F G, one bar each */
-var BASSP=[0,null,null,12,null,7,null,12]; /* syncopated bass bounce */
-var MELA=[
-  72,null,76,null, 79,76,null,74,
-  76,74,72,null, 74,null,79,null,
-  77,null,81,79, 77,null,76,77,
-  79,78,77,null, 74,71,74,null
+/* melody markers: number = strike note, -1 = keep tremolo on previous note, null = rest */
+var HOOKA=[
+  76,-1,72,null, 74,72,null,71,
+  69,null,72,74, 76,-1,null,74,
+  77,-1,74,null, 77,79,null,77,
+  76,74,71,null, 80,-1,71,null
 ];
-var MELB=[
-  null,76,79,null, 84,null,79,76,
-  77,76,75,76, null,72,74,76,
-  77,null,81,null, 84,81,79,77,
-  79,null,74,76, 78,79,null,null
+var HOOKB=[
+  null,76,81,null, 79,-1,77,76,
+  74,-1,79,null, 74,71,null,74,
+  71,-1,68,null, 71,74,76,-1,
+  77,76,74,72, 69,-1,-1,null
 ];
-var SCALE=[0,2,4,5,7,9,11];
+var ROOTSA=[45,45,50,40]; /* Am Am Dm E */
+var ROOTSB=[45,43,40,45]; /* Am G  E  Am */
+var CHORDS={45:[60,64,69],50:[62,65,69],40:[59,64,68],43:[59,62,67]};
+var SCALE=[0,2,4,5,8,9,11]; /* A harmonic minor pitch classes */
 function thirdBelow(m){
   var pc=((m%12)+12)%12;
   var ix=SCALE.indexOf(pc);
@@ -508,6 +510,17 @@ function mnote(m,t,d,type,vol){
   g.gain.exponentialRampToValueAtTime(0.0001,t+d);
   o.connect(g); g.connect(musicGain);
   o.start(t); o.stop(t+d+0.05);
+}
+function balaNote(m,t,vol){
+  var o=actx.createOscillator(), g=actx.createGain();
+  o.type='sawtooth'; o.frequency.value=midiF(m);
+  g.gain.setValueAtTime(vol,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+STEP*0.48);
+  o.connect(g); g.connect(musicGain);
+  o.start(t); o.stop(t+STEP*0.6);
+}
+function strum(tones,t){
+  tones.forEach(function(m,i){ balaNote(m,t+i*0.014,0.016); });
 }
 function getNoise(){
   if(!noiseBuf){
@@ -548,23 +561,34 @@ function snare(t){
 function scheduleMusic(){
   if(!actx) return;
   while(nextNoteTime<actx.currentTime+0.4){
-    var bar=Math.floor(musicStep/8)%4;
-    var pos=musicStep%8;
+    var t=nextNoteTime;
+    var half=Math.floor(musicStep/32)%2;
+    var pat=half?HOOKB:HOOKA;
+    var roots=half?ROOTSB:ROOTSA;
     var loopPos=musicStep%32;
-    var root=ROOTS[bar];
-    /* NES style kit: ticking hats, thump on 1, snap on 3 */
-    hat(nextNoteTime,(pos%2===1)?0.05:0.03);
-    if(pos===0) kick(nextNoteTime);
-    if(pos===4) snare(nextNoteTime);
-    /* staccato triangle bass with syncopated pushes */
-    var bp=BASSP[pos];
-    if(bp!==null){ mnote(root+bp,nextNoteTime,STEP*0.5,'triangle',0.11); }
-    /* two square wave voices: melody plus a harmony a third below */
-    var pat=(Math.floor(musicStep/32)%2===0)?MELA:MELB;
+    var bar=Math.floor(loopPos/8);
+    var pos=loopPos%8;
+    var root=roots[bar];
+    /* platformer rhythm bed: ticking hats, thump on 1, snap on 3 */
+    hat(t,(pos%2===1)?0.05:0.03);
+    if(pos===0) kick(t);
+    if(pos===4) snare(t);
+    /* bouncing staccato bass on the beats, strummed chords on the offbeats */
+    if(pos%2===0){
+      mnote(pos%4===0?root:root+12,t,STEP*0.5,'triangle',0.11);
+    } else {
+      strum(CHORDS[root]||[],t);
+    }
+    /* balalaika lead: every note struck twice, holds keep shimmering, harmony a third below */
     var n=pat[loopPos];
-    if(n){
-      mnote(n,nextNoteTime,STEP*0.85,'square',0.045);
-      mnote(thirdBelow(n),nextNoteTime,STEP*0.85,'square',0.026);
+    if(n===-1){
+      balaNote(lastMel,t,0.032);
+      balaNote(lastMel,t+STEP/2,0.026);
+    } else if(n){
+      lastMel=n;
+      balaNote(n,t,0.052);
+      balaNote(n,t+STEP/2,0.034);
+      balaNote(thirdBelow(n),t,0.02);
     }
     nextNoteTime+=STEP;
     musicStep++;
