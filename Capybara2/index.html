@@ -78,6 +78,14 @@
     font-family:inherit; font-size:14px; font-weight:600; padding:7px 16px; border:none; border-radius:999px;
     background:#ffffffcc; color:#9C5F86; cursor:pointer;
   }
+  .speed-picker{display:flex; gap:8px;}
+  .spd{
+    font-family:inherit; font-size:18px; font-weight:700; padding:8px 16px; border:none; border-radius:14px;
+    background:#fff; color:#C9A5BC; cursor:pointer; box-shadow:0 3px 0 rgba(36,59,83,.15);
+    transition:transform .1s, background .15s, color .15s;
+  }
+  .spd:active{transform:translateY(2px);}
+  .spd.on{background:var(--purple); color:#fff; box-shadow:0 3px 0 #b661a6;}
   .start-btn{
     font-family:inherit; font-size:26px; font-weight:700; letter-spacing:1px; color:#fff;
     background:linear-gradient(180deg,var(--red),#E63E50); border:none; border-radius:20px;
@@ -343,6 +351,12 @@
   <div class="picker-label">Pick your times tables</div>
   <div class="table-picker" id="tablePicker"></div>
   <button class="chip-all" id="allBtn">Select all</button>
+  <div class="picker-label">Petal speed</div>
+  <div class="speed-picker" id="speedPicker">
+    <button class="spd" data-spd="1">🐢 1</button>
+    <button class="spd on" data-spd="2">🐹 2</button>
+    <button class="spd" data-spd="3">🐰 3</button>
+  </div>
   <button class="start-btn" id="startBtn">🌸 START!</button>
   <div class="howto">
     <span>🌸 Answer before the petal lands</span>
@@ -360,6 +374,7 @@
     <div class="stat">💖 <span id="goals">0</span></div>
     <div class="stat">🌼 Lv <span id="level">1</span></div>
     <div class="spacer"></div>
+    <button class="icon-btn" id="speedBtn" title="Petal speed">🐹2</button>
     <button class="icon-btn" id="musicBtn" title="Music on or off">🎵</button>
     <button class="icon-btn" id="muteBtn" title="Sound on or off">🔊</button>
   </header>
@@ -439,6 +454,11 @@ var tables=new Set([2,3,4,5,6,7,8,9,10]);
 var muted=false, actx=null;
 var gen=0;
 var S=null;
+/* falling speed: 1 gentle, 2 normal, 3 zippy — base fall time in ms */
+var speed=2;
+var SPEED_BASE={1:15000,2:11500,3:8000};
+var SPEED_FLOOR={1:8000,2:5500,3:3600};
+var SPEED_ICON={1:'🐢1',2:'🐹2',3:'🐰3'};
 
 /* ---------- top score (browser storage with in-memory fallback) ---------- */
 var mem={};
@@ -455,6 +475,9 @@ var store={
 var TOP_KEY='pia-capybara-top';
 var topScore=parseInt(store.get(TOP_KEY),10)||0;
 function saveTop(){ store.set(TOP_KEY,String(topScore)); }
+var SPEED_KEY='pia-capybara-speed';
+var savedSpeed=parseInt(store.get(SPEED_KEY),10);
+if(savedSpeed>=1&&savedSpeed<=3) speed=savedSpeed;
 function showTop(){
   var box=$('topScoreBox');
   if(topScore>0){
@@ -734,7 +757,7 @@ function spawn(){
     btns[i].className='ans a'+i;
     btns[i].disabled=false;
   }
-  S.fallDur=Math.max(5500,11500-(level()-1)*900);
+  S.fallDur=Math.max(SPEED_FLOOR[speed],SPEED_BASE[speed]-(level()-1)*900);
   S.fallStart=performance.now();
   S.phase='falling';
   S.raf=requestAnimationFrame(fall);
@@ -985,6 +1008,32 @@ $('allBtn').addEventListener('click',function(){
   Array.prototype.forEach.call($('tablePicker').children,function(b){ b.classList.add('on'); });
   $('startBtn').disabled=false;
 });
+function applySpeed(v){
+  speed=v;
+  store.set(SPEED_KEY,String(v));
+  Array.prototype.forEach.call($('speedPicker').children,function(b){
+    b.classList.toggle('on',+b.dataset.spd===v);
+  });
+  $('speedBtn').textContent=SPEED_ICON[v];
+  /* if a petal is mid-fall, retime the rest of its drop to the new speed */
+  if(S&&S.phase==='falling'){
+    var now=performance.now();
+    var elapsed=now-S.fallStart;
+    var progressed=elapsed/S.fallDur;              /* fraction already fallen */
+    var newDur=Math.max(SPEED_FLOOR[speed],SPEED_BASE[speed]-(level()-1)*900);
+    S.fallDur=newDur;
+    S.fallStart=now-progressed*newDur;             /* keep the petal where it is */
+  }
+}
+$('speedPicker').addEventListener('click',function(e){
+  var b=e.target.closest('.spd'); if(!b) return;
+  ensureAudio(); snd.click();
+  applySpeed(+b.dataset.spd);
+});
+$('speedBtn').addEventListener('click',function(){
+  ensureAudio(); snd.click();
+  applySpeed(speed%3+1);   /* cycle 1 -> 2 -> 3 -> 1 */
+});
 $('startBtn').addEventListener('click',function(){
   if(tables.size===0) return;
   ensureAudio();
@@ -993,6 +1042,7 @@ $('startBtn').addEventListener('click',function(){
   S=freshState();
   $('startScreen').classList.add('hidden');
   $('gameScreen').classList.remove('hidden');
+  $('speedBtn').textContent=SPEED_ICON[speed];
   updateHud(); renderWall();
   ghost.style.display='none';
   car.style.transition='none'; car.style.left='6px';
@@ -1061,6 +1111,11 @@ window.addEventListener('resize',function(){
 
 buildPicker();
 showTop();
+/* reflect saved speed on the start-screen picker and header button */
+Array.prototype.forEach.call($('speedPicker').children,function(b){
+  b.classList.toggle('on',+b.dataset.spd===speed);
+});
+$('speedBtn').textContent=SPEED_ICON[speed];
 })();
 </script>
 </body>
