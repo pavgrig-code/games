@@ -1,7 +1,7 @@
 {
   "name": "Michael the Wonder Boy",
   "short_name": "Wonder Boy",
-  "start_url": "./michael-wonder-boy.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
