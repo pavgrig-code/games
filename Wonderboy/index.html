@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Michael the Wonder Boy</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ccircle%20cx='32'%20cy='32'%20r='29'%20fill='%23FFC53D'%20stroke='%231F2A6B'%20stroke-width='5'/%3E%3Ctext%20x='32'%20y='46'%20text-anchor='middle'%20font-family='Impact,Arial%20Black,sans-serif'%20font-size='38'%20font-weight='bold'%20fill='%23E5484D'%20stroke='%231F2A6B'%20stroke-width='1.5'%20paint-order='stroke'%3EM%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Cdefs%3E%3CradialGradient%20id='g'%20cx='50%25'%20cy='42%25'%20r='70%25'%3E%3Cstop%20offset='0'%20stop-color='%23FFF3C4'/%3E%3Cstop%20offset='0.55'%20stop-color='%23FFD84D'/%3E%3Cstop%20offset='1'%20stop-color='%23F5A623'/%3E%3C/radialGradient%3E%3ClinearGradient%20id='b'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%23FFE24D'/%3E%3Cstop%20offset='1'%20stop-color='%23F5A623'/%3E%3C/linearGradient%3E%3ClinearGradient%20id='m'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3E%3Cstop%20offset='0'%20stop-color='%23FF5A5F'/%3E%3Cstop%20offset='1'%20stop-color='%23C62828'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%20transform='translate%282,2%29%20scale%280.6%29'%3E%3Cpolygon%20points='50,2%2058.3,19.1%2074,8.4%2072.6,27.4%2091.6,26%2080.9,41.7%2098,50%2080.9,58.3%2091.6,74%2072.6,72.6%2074,91.6%2058.3,80.9%2050,98%2041.7,80.9%2026,91.6%2027.4,72.6%208.4,74%2019.1,58.3%202,50%2019.1,41.7%208.4,26%2027.4,27.4%2026,8.4%2041.7,19.1'%20fill='url%28%23g%29'%20stroke='%231F2A6B'%20stroke-width='3'%20stroke-linejoin='round'/%3E%3C/g%3E%3Ccircle%20cx='32'%20cy='32'%20r='19'%20fill='%23FFFFFF'%20opacity='0.22'/%3E%3Cellipse%20cx='32'%20cy='18'%20rx='15'%20ry='6.5'%20fill='%23FFFFFF'%20opacity='0.2'/%3E%3Ctext%20x='32'%20y='42'%20font-size='32'%20text-anchor='middle'%3E%F0%9F%A6%B8%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8F%3C/text%3E%3Ccircle%20cx='32'%20cy='52'%20r='11'%20fill='url%28%23b%29'%20stroke='%231F2A6B'%20stroke-width='1.6'/%3E%3Ccircle%20cx='32'%20cy='52'%20r='9.2'%20fill='none'%20stroke='%23FFFFFF'%20stroke-width='1.2'%20opacity='0.85'/%3E%3Ctext%20x='32'%20y='58'%20font-size='16'%20text-anchor='middle'%20font-family='Impact,Arial%20Black,sans-serif'%20fill='url%28%23m%29'%20stroke='%231F2A6B'%20stroke-width='0.8'%20paint-order='stroke'%20transform='rotate%28-5%2032%2052%29'%3EM%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     --sky:#CDE9F5; --sand:#FFF6E5; --card:#FFFDF7; --ink:#2B2B33;
@@ -39,19 +39,21 @@
 
   /* home */
   #logo{ width:100%; max-width:430px; height:auto; margin-top:2px;
-    filter:drop-shadow(0 4px 0 rgba(0,0,0,.15)); }
-  #hero{ position:relative; font-size:6.2rem; line-height:1; background:var(--card); border-radius:50%;
-    width:172px; height:172px; display:flex; align-items:center; justify-content:center;
-    box-shadow:0 6px 0 rgba(0,0,0,.12); overflow:hidden; }
-  #heroBurst{ position:absolute; inset:0; width:100%; height:100%; z-index:0; }
+    filter:drop-shadow(0 8px 14px rgba(31,42,107,.25)); }
+  #hero{ position:relative; font-size:6.2rem; line-height:1; background:transparent;
+    width:180px; height:180px; display:flex; align-items:center; justify-content:center; }
+  #heroBurst{ position:absolute; inset:0; width:100%; height:100%; z-index:0;
+    filter:drop-shadow(0 8px 14px rgba(31,42,107,.3)); }
   #heroEmoji{ position:relative; z-index:1; }
   #heroM{
-    position:absolute; z-index:2; left:50%; top:63%; transform:translateX(-50%);
-    width:42px; height:42px; border-radius:50%; background:#FFC53D; border:3px solid #1F2A6B;
-    color:#E5484D; font-family:Impact,'Arial Black',sans-serif; font-size:27px;
+    position:absolute; z-index:2; left:50%; top:68%; transform:translateX(-50%);
+    width:54px; height:54px; border-radius:50%;
+    background:linear-gradient(180deg,#FFE24D,#F5A623);
+    border:2px solid #FFFFFF;
     display:flex; align-items:center; justify-content:center; pointer-events:none;
-    box-shadow:0 2px 0 rgba(0,0,0,.2);
+    box-shadow:0 0 0 2.5px #1F2A6B, 0 5px 10px rgba(31,42,107,.35), inset 0 2px 3px rgba(255,255,255,.65);
   }
+  #heroM svg{ width:88%; height:88%; }
   .menu{ display:flex; flex-direction:column; gap:16px; width:100%; }
   .bigcard{
     display:flex; align-items:center; gap:20px; width:100%; padding:16px 22px;
@@ -154,27 +156,52 @@
   <svg id="logo" viewBox="0 0 560 200" role="img" aria-label="Michael the Wonder Boy">
     <defs>
       <linearGradient id="lgrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#FFE24D"/>
-        <stop offset="1" stop-color="#FFA726"/>
+        <stop offset="0" stop-color="#FFF1A8"/>
+        <stop offset="0.5" stop-color="#FFD84D"/>
+        <stop offset="1" stop-color="#F79E1B"/>
+      </linearGradient>
+      <linearGradient id="tabgrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FF5A5F"/>
+        <stop offset="1" stop-color="#D32F2F"/>
       </linearGradient>
     </defs>
-    <g transform="rotate(-4 280 100)" font-family="Impact,'Arial Black',sans-serif" text-anchor="middle">
-      <text x="287" y="87" font-size="80" fill="#16225C">MICHAEL</text>
-      <text x="280" y="80" font-size="80" fill="url(#lgrad)" stroke="#1F2A6B" stroke-width="10" stroke-linejoin="round" paint-order="stroke">MICHAEL</text>
-      <rect x="243" y="94" width="74" height="27" rx="5" fill="#E5484D" stroke="#1F2A6B" stroke-width="4"/>
-      <text x="280" y="114" font-size="20" fill="#FFFFFF" letter-spacing="5">THE</text>
-      <text x="286" y="181" font-size="58" fill="#16225C">WONDER BOY</text>
-      <text x="280" y="175" font-size="58" fill="url(#lgrad)" stroke="#1F2A6B" stroke-width="9" stroke-linejoin="round" paint-order="stroke">WONDER BOY</text>
-      <path d="M92,26 L97,42 L113,47 L97,52 L92,68 L87,52 L71,47 L87,42 Z" fill="#FFFFFF" stroke="#1F2A6B" stroke-width="3" stroke-linejoin="round"/>
+    <g transform="rotate(-4 280 100)" font-family="Impact,'Arial Black',sans-serif" text-anchor="middle" stroke-linejoin="round">
+      <text x="280" y="80" font-size="80" fill="none" stroke="#FFFFFF" stroke-width="18">MICHAEL</text>
+      <text x="280" y="80" font-size="80" fill="none" stroke="#1F2A6B" stroke-width="9">MICHAEL</text>
+      <text x="280" y="80" font-size="80" fill="url(#lgrad)">MICHAEL</text>
+      <text x="280" y="175" font-size="58" fill="none" stroke="#FFFFFF" stroke-width="15">WONDER BOY</text>
+      <text x="280" y="175" font-size="58" fill="none" stroke="#1F2A6B" stroke-width="8">WONDER BOY</text>
+      <text x="280" y="175" font-size="58" fill="url(#lgrad)">WONDER BOY</text>
+      <rect x="241" y="93" width="78" height="28" rx="14" fill="url(#tabgrad)" stroke="#FFFFFF" stroke-width="3"/>
+      <text x="280" y="113" font-size="19" fill="#FFFFFF" letter-spacing="5">THE</text>
+      <path d="M92,26 L97,42 L113,47 L97,52 L92,68 L87,52 L71,47 L87,42 Z" fill="#FFFFFF" stroke="#1F2A6B" stroke-width="2.5" stroke-linejoin="round" opacity="0.95"/>
+      <circle cx="468" cy="42" r="4" fill="#FFFFFF" opacity="0.9"/>
     </g>
   </svg>
   <button id="hero" aria-label="Michael the Wonder Boy">
     <svg id="heroBurst" viewBox="0 0 100 100" aria-hidden="true">
-      <polygon points="50,2 58.3,19.1 74,8.4 72.6,27.4 91.6,26 80.9,41.7 98,50 80.9,58.3 91.6,74 72.6,72.6 74,91.6 58.3,80.9 50,98 41.7,80.9 26,91.6 27.4,72.6 8.4,74 19.1,58.3 2,50 19.1,41.7 8.4,26 27.4,27.4 26,8.4 41.7,19.1" fill="#FFD84D"/>
-      <circle cx="50" cy="50" r="27" fill="#FFE9A8"/>
+      <defs>
+        <radialGradient id="hbg" cx="50%" cy="42%" r="70%">
+          <stop offset="0" stop-color="#FFF3C4"/>
+          <stop offset="0.55" stop-color="#FFD84D"/>
+          <stop offset="1" stop-color="#F5A623"/>
+        </radialGradient>
+      </defs>
+      <polygon points="50,2 58.3,19.1 74,8.4 72.6,27.4 91.6,26 80.9,41.7 98,50 80.9,58.3 91.6,74 72.6,72.6 74,91.6 58.3,80.9 50,98 41.7,80.9 26,91.6 27.4,72.6 8.4,74 19.1,58.3 2,50 19.1,41.7 8.4,26 27.4,27.4 26,8.4 41.7,19.1"
+        fill="url(#hbg)" stroke="#1F2A6B" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="50" cy="50" r="31" fill="#FFFFFF" opacity="0.22"/>
+      <ellipse cx="50" cy="27" rx="26" ry="11" fill="#FFFFFF" opacity="0.2"/>
     </svg>
     <span id="heroEmoji">🦸🏻‍♂️</span>
-    <span id="heroM">M</span>
+    <span id="heroM"><svg viewBox="0 0 40 40" aria-hidden="true">
+      <defs>
+        <linearGradient id="mgrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FF5A5F"/>
+          <stop offset="1" stop-color="#C62828"/>
+        </linearGradient>
+      </defs>
+      <text x="20" y="32" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="34" fill="url(#mgrad)" stroke="#1F2A6B" stroke-width="1.8" stroke-linejoin="round" paint-order="stroke" transform="rotate(-5 20 20)">M</text>
+    </svg></span>
   </button>
   <div class="menu">
     <button class="bigcard" data-go="garage" data-say="Cars!"><span class="cardpic">🚗</span><span class="cardword">CARS</span></button>
