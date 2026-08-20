@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Michael the Wonder Boy</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ccircle%20cx='32'%20cy='32'%20r='29'%20fill='%23FFC53D'%20stroke='%231F2A6B'%20stroke-width='5'/%3E%3Ctext%20x='32'%20y='46'%20text-anchor='middle'%20font-family='Impact,Arial%20Black,sans-serif'%20font-size='38'%20font-weight='bold'%20fill='%23E5484D'%20stroke='%231F2A6B'%20stroke-width='1.5'%20paint-order='stroke'%3EM%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --sky:#CDE9F5; --sand:#FFF6E5; --card:#FFFDF7; --ink:#2B2B33;
+    --road:#3A3F47; --line:#FFD84D;
+    --red:#E5484D; --blue:#2F6FED; --yellow:#FFC53D; --green:#30A46C; --purple:#B75CE5;
+    --kidfont:"Comic Sans MS","Chalkboard SE","Marker Felt","Segoe UI",system-ui,sans-serif;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; }
+  body{
+    font-family:var(--kidfont); color:var(--ink);
+    background:linear-gradient(180deg,var(--sky) 0%, var(--sand) 70%);
+    min-height:100vh; user-select:none; -webkit-user-select:none; touch-action:manipulation;
+    overflow-x:hidden;
+  }
+  button{ font-family:var(--kidfont); border:none; cursor:pointer; background:none; color:var(--ink); }
+  button:active{ transform:scale(.93); }
+  button:focus-visible{ outline:4px solid var(--blue); outline-offset:3px; border-radius:16px; }
+
+  /* top bar */
+  #topbar{
+    position:sticky; top:0; z-index:20; display:flex; justify-content:space-between; align-items:center;
+    padding:10px 12px;
+  }
+  .iconbtn{
+    font-size:1.7rem; line-height:1; background:var(--card); border-radius:18px;
+    width:60px; height:60px; box-shadow:0 4px 0 rgba(0,0,0,.12);
+  }
+
+  .screen{ max-width:560px; margin:0 auto; padding:4px 16px 40px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .hidden{ display:none !important; }
+
+  /* home */
+  #logo{ width:100%; max-width:430px; height:auto; margin-top:2px;
+    filter:drop-shadow(0 4px 0 rgba(0,0,0,.15)); }
+  #hero{ position:relative; font-size:6.2rem; line-height:1; background:var(--card); border-radius:50%;
+    width:172px; height:172px; display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 0 rgba(0,0,0,.12); overflow:hidden; }
+  #heroBurst{ position:absolute; inset:0; width:100%; height:100%; z-index:0; }
+  #heroEmoji{ position:relative; z-index:1; }
+  #heroM{
+    position:absolute; z-index:2; left:50%; top:63%; transform:translateX(-50%);
+    width:42px; height:42px; border-radius:50%; background:#FFC53D; border:3px solid #1F2A6B;
+    color:#E5484D; font-family:Impact,'Arial Black',sans-serif; font-size:27px;
+    display:flex; align-items:center; justify-content:center; pointer-events:none;
+    box-shadow:0 2px 0 rgba(0,0,0,.2);
+  }
+  .menu{ display:flex; flex-direction:column; gap:16px; width:100%; }
+  .bigcard{
+    display:flex; align-items:center; gap:20px; width:100%; padding:16px 22px;
+    background:var(--card); border-radius:26px; box-shadow:0 6px 0 rgba(0,0,0,.12);
+  }
+  .cardpic{ font-size:3.4rem; line-height:1; }
+  .cardword{ font-family:'Arial Rounded MT Bold','Varela Round','Chalkboard SE','Comic Sans MS',sans-serif;
+    font-size:2rem; font-weight:bold; letter-spacing:.1em; text-shadow:1px 1px 0 #fff; }
+  .menu .bigcard:nth-child(1) .cardword{ color:var(--red); }
+  .menu .bigcard:nth-child(2) .cardword{ color:var(--blue); }
+  .menu .bigcard:nth-child(3) .cardword{ color:var(--green); }
+
+  /* shared game bits */
+  .prompt{ display:flex; align-items:center; gap:12px; min-height:64px; }
+  .bignum{
+    font-size:clamp(3rem,14vw,4.6rem); font-weight:bold; min-width:1.2em; text-align:center;
+    color:var(--blue); text-shadow:2px 2px 0 #fff;
+  }
+  .equation{ font-size:2.2rem; font-weight:bold; letter-spacing:.06em; min-height:1.2em; }
+  .equation b{ color:var(--red); }
+  .equation b:nth-of-type(2){ color:var(--green); }
+  .equation b:nth-of-type(3){ color:var(--blue); }
+  .afterbar{ display:flex; gap:22px; }
+  .afterbar .iconbtn{ width:84px; height:84px; font-size:2.4rem; border-radius:24px; }
+  .afterbar .next{ background:#DFF5E6; }
+
+  /* garage */
+  #garageBox{ width:100%; background:var(--card); border-radius:26px; padding:14px; box-shadow:0 6px 0 rgba(0,0,0,.12); }
+  #garageRoof{
+    background:var(--red); color:#fff; border-radius:16px 16px 4px 4px; text-align:center;
+    font-size:1.3rem; font-weight:bold; letter-spacing:.2em; padding:8px 0; margin-bottom:12px;
+  }
+  #garageSlots{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; min-height:66px; }
+  .slot{
+    width:72px; height:58px; border:4px dashed #B9C4CE; border-radius:14px;
+    display:flex; align-items:center; justify-content:center; font-size:2.4rem; line-height:1;
+  }
+  .slot.filled{ border-style:solid; border-color:var(--green); background:#F0FBF4; }
+  #carRow{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; min-height:80px; }
+  .car{ font-size:3.2rem; line-height:1; padding:6px; border-radius:18px; background:var(--card);
+    box-shadow:0 4px 0 rgba(0,0,0,.12); }
+  .car.gone{ transform:scale(0) translateY(-30px); opacity:0; transition:all .35s ease; }
+
+  /* blocks */
+  #colorPick{ display:grid; grid-template-columns:1fr 1fr; gap:18px; width:100%; }
+  .colorbtn{ height:110px; border-radius:22px; box-shadow:0 6px 0 rgba(0,0,0,.18); }
+  #towerWrap{ display:flex; align-items:flex-end; justify-content:center; gap:34px; width:100%; }
+  #tower{ display:flex; flex-direction:column-reverse; gap:6px; min-height:70px; }
+  .bslot{ width:92px; height:52px; border:4px dashed #B9C4CE; border-radius:12px; }
+  .bslot.bfilled{ border:none; box-shadow:inset 0 -5px 0 rgba(0,0,0,.15); }
+  #addBlock{
+    width:110px; height:92px; border-radius:20px; font-size:3rem; color:#fff; font-weight:bold;
+    box-shadow:0 7px 0 rgba(0,0,0,.2);
+  }
+  .colorword{ font-size:2.6rem; font-weight:bold; letter-spacing:.14em; min-height:1.2em; text-shadow:1px 1px 0 #fff; }
+  .dance{ animation:dance .8s ease; }
+
+  /* words */
+  #wordBig{ font-size:clamp(2.6rem,12vw,4rem); font-weight:bold; letter-spacing:.14em; color:var(--ink);
+    background:var(--card); padding:8px 26px; border-radius:20px; box-shadow:0 5px 0 rgba(0,0,0,.12); }
+  #choices{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; }
+  .choice{
+    width:150px; height:150px; background:var(--card); border-radius:26px; font-size:4.4rem; line-height:1;
+    box-shadow:0 6px 0 rgba(0,0,0,.12); border:5px solid transparent;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .choice.right{ border-color:var(--green); background:#F0FBF4; }
+  #road{ position:relative; width:100%; height:64px; background:var(--road); border-radius:14px; overflow:hidden; }
+  #road::before{ content:""; position:absolute; top:50%; left:0; right:0; height:5px;
+    background:repeating-linear-gradient(90deg,var(--line) 0 26px, transparent 26px 52px); transform:translateY(-50%); }
+  #zoomCar{ position:absolute; left:-70px; top:50%; transform:translateY(-52%); font-size:2.6rem; line-height:1; }
+  #zoomCar.driving{ animation:drive 1.1s ease-in forwards; }
+
+  /* fx */
+  .pop{ animation:pop .4s ease; }
+  .wiggle{ animation:wiggle .4s ease; }
+  .boing{ animation:boing .6s ease; }
+  .cf{ position:fixed; top:-20px; width:14px; height:14px; border-radius:4px; z-index:50; pointer-events:none;
+    animation:fall 1.7s ease-in forwards; }
+  @keyframes pop{ 0%{transform:scale(.4)} 60%{transform:scale(1.18)} 100%{transform:scale(1)} }
+  @keyframes wiggle{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-9px)} 75%{transform:translateX(9px)} }
+  @keyframes boing{ 0%{transform:scale(1)} 30%{transform:scale(1.22) rotate(-6deg)} 60%{transform:scale(.95)} 100%{transform:scale(1)} }
+  @keyframes dance{ 0%,100%{transform:rotate(0)} 25%{transform:rotate(-4deg)} 75%{transform:rotate(4deg)} }
+  @keyframes fall{ to{ transform:translateY(110vh) rotate(540deg); } }
+  @keyframes drive{ from{ left:-70px; } to{ left:110%; } }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <button class="iconbtn" id="homeBtn" aria-label="Home">🏠</button>
+  <button class="iconbtn" id="soundBtn" aria-label="Sound on or off">🔊</button>
+</div>
+
+<!-- HOME -->
+<section id="home" class="screen">
+  <svg id="logo" viewBox="0 0 560 200" role="img" aria-label="Michael the Wonder Boy">
+    <defs>
+      <linearGradient id="lgrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#FFE24D"/>
+        <stop offset="1" stop-color="#FFA726"/>
+      </linearGradient>
+    </defs>
+    <g transform="rotate(-4 280 100)" font-family="Impact,'Arial Black',sans-serif" text-anchor="middle">
+      <text x="287" y="87" font-size="80" fill="#16225C">MICHAEL</text>
+      <text x="280" y="80" font-size="80" fill="url(#lgrad)" stroke="#1F2A6B" stroke-width="10" stroke-linejoin="round" paint-order="stroke">MICHAEL</text>
+      <rect x="243" y="94" width="74" height="27" rx="5" fill="#E5484D" stroke="#1F2A6B" stroke-width="4"/>
+      <text x="280" y="114" font-size="20" fill="#FFFFFF" letter-spacing="5">THE</text>
+      <text x="286" y="181" font-size="58" fill="#16225C">WONDER BOY</text>
+      <text x="280" y="175" font-size="58" fill="url(#lgrad)" stroke="#1F2A6B" stroke-width="9" stroke-linejoin="round" paint-order="stroke">WONDER BOY</text>
+      <path d="M92,26 L97,42 L113,47 L97,52 L92,68 L87,52 L71,47 L87,42 Z" fill="#FFFFFF" stroke="#1F2A6B" stroke-width="3" stroke-linejoin="round"/>
+    </g>
+  </svg>
+  <button id="hero" aria-label="Michael the Wonder Boy">
+    <svg id="heroBurst" viewBox="0 0 100 100" aria-hidden="true">
+      <polygon points="50,2 58.3,19.1 74,8.4 72.6,27.4 91.6,26 80.9,41.7 98,50 80.9,58.3 91.6,74 72.6,72.6 74,91.6 58.3,80.9 50,98 41.7,80.9 26,91.6 27.4,72.6 8.4,74 19.1,58.3 2,50 19.1,41.7 8.4,26 27.4,27.4 26,8.4 41.7,19.1" fill="#FFD84D"/>
+      <circle cx="50" cy="50" r="27" fill="#FFE9A8"/>
+    </svg>
+    <span id="heroEmoji">🦸🏻‍♂️</span>
+    <span id="heroM">M</span>
+  </button>
+  <div class="menu">
+    <button class="bigcard" data-go="garage" data-say="Cars!"><span class="cardpic">🚗</span><span class="cardword">CARS</span></button>
+    <button class="bigcard" data-go="blocks" data-say="Blocks!"><span class="cardpic">🟥</span><span class="cardword">BLOCKS</span></button>
+    <button class="bigcard" data-go="words" data-say="Words!"><span class="cardpic">⭐</span><span class="cardword">WORDS</span></button>
+  </div>
+</section>
+
+<!-- GARAGE : counting and addition -->
+<section id="garage" class="screen hidden">
+  <div class="prompt">
+    <button class="iconbtn" id="gSay" aria-label="Hear it again">🔊</button>
+    <div class="equation" id="gEq"></div>
+    <div class="bignum" id="gNum"></div>
+  </div>
+  <div id="garageBox">
+    <div id="garageRoof">🏁 GARAGE</div>
+    <div id="garageSlots"></div>
+  </div>
+  <div id="carRow"></div>
+  <div class="afterbar hidden" id="gAfter">
+    <button class="iconbtn again" id="gAgain" aria-label="Play again">🔁</button>
+    <button class="iconbtn next" id="gNext" aria-label="Next">➡️</button>
+  </div>
+</section>
+
+<!-- BLOCKS : colors and counting -->
+<section id="blocks" class="screen hidden">
+  <div class="prompt">
+    <button class="iconbtn" id="bSay" aria-label="Hear it again">🔊</button>
+    <div class="colorword" id="bWord"></div>
+    <div class="bignum" id="bNum"></div>
+  </div>
+  <div id="colorPick"></div>
+  <div id="towerWrap" class="hidden">
+    <div id="tower"></div>
+    <button id="addBlock" aria-label="Add a block">＋</button>
+  </div>
+  <div class="afterbar hidden" id="bAfter">
+    <button class="iconbtn again" id="bAgain" aria-label="Build again">🔁</button>
+    <button class="iconbtn next" id="bNext" aria-label="Next">➡️</button>
+  </div>
+</section>
+
+<!-- WORDS : word to picture matching -->
+<section id="words" class="screen hidden">
+  <div class="prompt">
+    <button class="iconbtn" id="wSay" aria-label="Hear the word">🔊</button>
+    <div id="wordBig"></div>
+  </div>
+  <div id="choices"></div>
+  <div id="road"><div id="zoomCar">🚗</div></div>
+  <div class="afterbar hidden" id="wAfter">
+    <button class="iconbtn again" id="wAgain" aria-label="Same word again">🔁</button>
+    <button class="iconbtn next" id="wNext" aria-label="Next word">➡️</button>
+  </div>
+</section>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var soundOn = true;
+
+  var NUMW = ['zero','one','two','three','four','five','six'];
+  var PRAISE = ['Great job, Michael!','Wow, Michael!','You did it, Michael!','Super, Wonder Boy!','Amazing, Michael!'];
+  var praiseIdx = 0;
+  function praise(){ return PRAISE[(praiseIdx++) % PRAISE.length]; }
+
+  /* ---------- sound ---------- */
+  var AC = null;
+  function ctx(){
+    if(!AC){ try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+    if(AC && AC.state === 'suspended'){ AC.resume(); }
+    return AC;
+  }
+  function tone(f, d, type, v, delay){
+    var c = ctx(); if(!c || !soundOn) return;
+    d = d||0.14; type = type||'sine'; v = v||0.07; delay = delay||0;
+    var o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(v, c.currentTime + delay);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + delay + d);
+    o.connect(g); g.connect(c.destination);
+    o.start(c.currentTime + delay); o.stop(c.currentTime + delay + d + 0.03);
+  }
+  function plop(n){ tone(300 + n*60, 0.12, 'sine', 0.09); }
+  function cheer(){ [523,659,784,1047].forEach(function(f,i){ tone(f, 0.18, 'triangle', 0.06, i*0.09); }); }
+  function soft(){ tone(220, 0.18, 'sine', 0.045); }
+
+  function say(t){
+    if(!soundOn || !('speechSynthesis' in window)) return;
+    try{
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(t);
+      u.rate = 0.85; u.pitch = 1.05;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function popEl(el){ el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+  function confetti(){
+    if(reduced) return;
+    var cols = ['#E5484D','#2F6FED','#FFC53D','#30A46C','#B75CE5'];
+    for(var i=0;i<26;i++){
+      var s = document.createElement('div');
+      s.className = 'cf';
+      s.style.left = (Math.random()*100)+'vw';
+      s.style.background = cols[i % cols.length];
+      s.style.animationDelay = (Math.random()*0.3)+'s';
+      document.body.appendChild(s);
+      (function(el){ setTimeout(function(){ el.remove(); }, 2300); })(s);
+    }
+  }
+
+  /* ---------- navigation ---------- */
+  function go(id){
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.add('hidden'); });
+    $(id).classList.remove('hidden');
+    if(id==='garage') gStart(false);
+    if(id==='blocks') bColorStep();
+    if(id==='words') wStart(false);
+  }
+  $('homeBtn').addEventListener('click', function(){ go('home'); });
+  $('soundBtn').addEventListener('click', function(){
+    soundOn = !soundOn;
+    $('soundBtn').textContent = soundOn ? '🔊' : '🔇';
+    if(!soundOn && ('speechSynthesis' in window)) window.speechSynthesis.cancel();
+    if(soundOn){ tone(660, 0.12, 'triangle', 0.06); }
+  });
+  document.querySelectorAll('.bigcard').forEach(function(b){
+    b.addEventListener('click', function(){
+      say(b.getAttribute('data-say'));
+      popEl(b);
+      setTimeout(function(){ go(b.getAttribute('data-go')); }, 320);
+    });
+  });
+  $('hero').addEventListener('click', function(){
+    $('hero').classList.remove('boing'); void $('hero').offsetWidth; $('hero').classList.add('boing');
+    cheer(); say('Michael the Wonder Boy!');
+  });
+
+  /* ---------- GARAGE : counting + hidden addition ---------- */
+  var CARS = ['🚗','🚙','🚕','🛻','🚓','🚐'];
+  var GLV = [ {t:2,s:0},{t:3,s:0},{t:4,s:0},{t:3,s:1},{t:4,s:2},{t:5,s:2},{t:5,s:3},{t:6,s:3} ];
+  var gL = 0, gT = 0, gS = 0, gIn = 0, gDone = false;
+
+  function gStart(sameLevel){
+    var cfg = GLV[gL % GLV.length];
+    gT = cfg.t; gS = cfg.s; gIn = gS; gDone = false;
+    $('gAfter').classList.add('hidden');
+
+    var slots = $('garageSlots'); slots.innerHTML = '';
+    for(var i=0;i<gT;i++){
+      var d = document.createElement('div');
+      d.className = 'slot' + (i < gS ? ' filled' : '');
+      if(i < gS) d.textContent = CARS[i % CARS.length];
+      slots.appendChild(d);
+    }
+    var row = $('carRow'); row.innerHTML = '';
+    var need = gT - gS;
+    for(var j=0;j<need;j++){
+      var c = document.createElement('button');
+      c.className = 'car';
+      c.textContent = CARS[(gS + j) % CARS.length];
+      c.addEventListener('click', gTap);
+      row.appendChild(c);
+    }
+    $('gEq').innerHTML = gS > 0 ? '<b>'+gS+'</b> + <b>'+need+'</b>' : '';
+    $('gNum').textContent = gIn > 0 ? gIn : '';
+    say('Park the cars!');
+  }
+  function gTap(ev){
+    if(gDone) return;
+    var btn = ev.currentTarget;
+    if(btn.disabled) return;
+    btn.disabled = true;
+    btn.classList.add('gone');
+    var empty = $('garageSlots').querySelector('.slot:not(.filled)');
+    if(empty){
+      empty.textContent = btn.textContent;
+      empty.classList.add('filled');
+      popEl(empty);
+    }
+    gIn++;
+    plop(gIn);
+    $('gNum').textContent = gIn; popEl($('gNum'));
+    if(gIn === gT){
+      gDone = true;
+      if(gS > 0){ $('gEq').innerHTML = '<b>'+gS+'</b> + <b>'+(gT-gS)+'</b> = <b>'+gT+'</b>'; }
+      cheer(); confetti();
+      setTimeout(function(){ say(NUMW[gT] + '! ' + NUMW[gT] + ' cars! ' + praise()); }, 350);
+      $('gAfter').classList.remove('hidden');
+    } else {
+      say(NUMW[gIn]);
+    }
+  }
+  $('gSay').addEventListener('click', function(){ say(gDone ? NUMW[gT] + ' cars!' : 'Park the cars!'); });
+  $('gAgain').addEventListener('click', function(){ gStart(true); });
+  $('gNext').addEventListener('click', function(){ gL++; gStart(false); });
+
+  /* ---------- BLOCKS : colors + counting ---------- */
+  var COLS = [
+    {w:'RED', s:'red', h:'#E5484D'},
+    {w:'BLUE', s:'blue', h:'#2F6FED'},
+    {w:'YELLOW', s:'yellow', h:'#FFC53D'},
+    {w:'GREEN', s:'green', h:'#30A46C'}
+  ];
+  var bC = null, bT = 3, bN = 0, bLvl = 0, bDone = false;
+
+  function bColorStep(){
+    bDone = false;
+    $('bAfter').classList.add('hidden');
+    $('towerWrap').classList.add('hidden');
+    $('bWord').textContent = ''; $('bNum').textContent = '';
+    var pick = $('colorPick'); pick.innerHTML = ''; pick.classList.remove('hidden');
+    COLS.forEach(function(col, i){
+      var b = document.createElement('button');
+      b.className = 'colorbtn';
+      b.style.background = col.h;
+      b.setAttribute('aria-label', col.s);
+      b.addEventListener('click', function(){ bPick(i); });
+      pick.appendChild(b);
+    });
+    say('Pick a color!');
+  }
+  function bPick(i){
+    bC = COLS[i];
+    say(bC.s + '!');
+    tone(500 + i*90, 0.15, 'triangle', 0.07);
+    $('bWord').textContent = bC.w;
+    $('bWord').style.color = bC.h;
+    popEl($('bWord'));
+    setTimeout(bTowerStep, 550);
+  }
+  function bTowerStep(){
+    bT = 3 + (bLvl % 4);
+    bN = 0; bDone = false;
+    $('colorPick').classList.add('hidden');
+    $('towerWrap').classList.remove('hidden');
+    var t = $('tower'); t.innerHTML = '';
+    for(var i=0;i<bT;i++){
+      var s = document.createElement('div');
+      s.className = 'bslot';
+      t.appendChild(s);
+    }
+    $('addBlock').style.background = bC.h;
+    $('bNum').textContent = '';
+    say('Build ' + NUMW[bT] + ' blocks!');
+  }
+  $('addBlock').addEventListener('click', function(){
+    if(bDone || !bC) return;
+    var empty = $('tower').querySelector('.bslot:not(.bfilled)');
+    if(!empty) return;
+    empty.classList.add('bfilled');
+    empty.style.background = bC.h;
+    popEl(empty);
+    bN++;
+    plop(bN);
+    $('bNum').textContent = bN; popEl($('bNum'));
+    if(bN === bT){
+      bDone = true;
+      $('tower').classList.remove('dance'); void $('tower').offsetWidth; $('tower').classList.add('dance');
+      cheer(); confetti();
+      setTimeout(function(){ say(NUMW[bT] + ' ' + bC.s + ' blocks! ' + praise()); }, 350);
+      $('bAfter').classList.remove('hidden');
+    } else {
+      say(NUMW[bN]);
+    }
+  });
+  $('bSay').addEventListener('click', function(){
+    if(!bC){ say('Pick a color!'); }
+    else if(bDone){ say(NUMW[bT] + ' ' + bC.s + ' blocks!'); }
+    else { say('Build ' + NUMW[bT] + ' blocks!'); }
+  });
+  $('bAgain').addEventListener('click', function(){ $('bAfter').classList.add('hidden'); bTowerStep(); });
+  $('bNext').addEventListener('click', function(){ bLvl++; bColorStep(); });
+
+  /* ---------- WORDS : word to picture ---------- */
+  var WORDS = [
+    {w:'CAR', e:'🚗'}, {w:'BUS', e:'🚌'}, {w:'SUN', e:'☀️'}, {w:'DOG', e:'🐶'},
+    {w:'CAT', e:'🐱'}, {w:'STAR', e:'⭐'}, {w:'BALL', e:'⚽'}, {w:'TREE', e:'🌳'},
+    {w:'BOAT', e:'⛵'}, {w:'BLOCK', e:'🟥'}
+  ];
+  var wRound = 0, wAns = null, wLock = false, wLastIdx = -1;
+
+  function shuffle(a){
+    for(var i=a.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function wStart(sameWord){
+    wLock = false;
+    $('wAfter').classList.add('hidden');
+    $('zoomCar').classList.remove('driving');
+    if(!sameWord){
+      var idx;
+      do { idx = Math.floor(Math.random()*WORDS.length); } while(idx === wLastIdx);
+      wLastIdx = idx;
+      wAns = WORDS[idx];
+    }
+    var n = wRound < 4 ? 2 : 3;
+    var pool = WORDS.filter(function(x){ return x.w !== wAns.w; });
+    shuffle(pool);
+    var opts = shuffle([wAns].concat(pool.slice(0, n-1)));
+    $('wordBig').textContent = wAns.w;
+    popEl($('wordBig'));
+    var box = $('choices'); box.innerHTML = '';
+    opts.forEach(function(item){
+      var b = document.createElement('button');
+      b.className = 'choice';
+      b.textContent = item.e;
+      b.setAttribute('aria-label', item.w.toLowerCase());
+      b.addEventListener('click', function(){ wTap(b, item); });
+      box.appendChild(b);
+    });
+    say(wAns.w.toLowerCase());
+  }
+  function wTap(btn, item){
+    if(wLock) return;
+    if(item.w === wAns.w){
+      wLock = true;
+      btn.classList.add('right');
+      popEl(btn);
+      cheer(); confetti();
+      if(!reduced){ $('zoomCar').classList.add('driving'); }
+      setTimeout(function(){ say('Yes! ' + wAns.w.toLowerCase() + '! ' + praise()); }, 250);
+      $('wAfter').classList.remove('hidden');
+    } else {
+      btn.classList.remove('wiggle'); void btn.offsetWidth; btn.classList.add('wiggle');
+      soft();
+      say(wAns.w.toLowerCase());
+    }
+  }
+  $('wSay').addEventListener('click', function(){ if(wAns) say(wAns.w.toLowerCase()); });
+  $('wAgain').addEventListener('click', function(){ wStart(true); });
+  $('wNext').addEventListener('click', function(){ wRound++; wStart(false); });
+
+})();
+</script>
+</body>
+</html>
