@@ -222,6 +222,17 @@
   .coach-anim{animation:bob 3s ease-in-out infinite; will-change:transform;}
   .puppy-corner svg{width:88px; height:88px;}
   @keyframes bob{50%{transform:translateY(-4px) rotate(-2deg);}}
+
+  /* On phones and tablets, keep the mermaid and crab perfectly still.
+     iPhone Safari re-renders moving artwork each frame and stutters,
+     so on touch devices there is no float, twirl, or layer promotion. */
+  @media (hover: none) and (pointer: coarse){
+    .mermaid-wrap, .coach-anim, .striker{
+      animation:none !important;
+      will-change:auto !important;
+      transform:none !important;
+    }
+  }
   .bubble{
     position:absolute; bottom:92px; left:0; min-width:150px; max-width:220px;
     background:#fff; border-radius:14px; padding:8px 12px; font-size:14px; font-weight:600; color:var(--ink);
