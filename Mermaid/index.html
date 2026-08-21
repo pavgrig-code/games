@@ -51,8 +51,8 @@
   .c2{left:78%; bottom:-20px; width:20px; height:20px; animation:riseUp 12s linear 3s infinite;}
   @keyframes riseUp{0%{transform:translateY(0);opacity:0;}12%{opacity:.7;}100%{transform:translateY(-110vh);opacity:0;}}
   .title-img{width:min(420px,86vw); height:auto; filter:drop-shadow(0 5px 12px rgba(10,25,60,.5));}
-  .mermaid-wrap{animation:bob 4s ease-in-out infinite; will-change:transform; transform:translateZ(0); margin:-4px 0; line-height:0;}
-  .mermaid-hero{width:min(340px,74vw); height:auto; filter:drop-shadow(0 8px 16px rgba(10,25,60,.5));}
+  .mermaid-wrap{animation:bob 4s ease-in-out infinite; will-change:transform; margin:-10px 0; line-height:0;}
+  .mermaid-hero{width:min(392px,85vw); height:auto;}
   .name-banner{
     font-weight:700; font-size:20px; color:#5A3A16; letter-spacing:1px;
     background:linear-gradient(180deg,#FBE9C2,#EBD09A); padding:3px 26px; border-radius:8px;
@@ -219,8 +219,8 @@
     60%{transform:translateX(-5px) translateY(var(--fy,0));}80%{transform:translateX(5px) translateY(var(--fy,0));}}
 
   .puppy-corner{position:absolute; left:8px; bottom:6px; width:92px; pointer-events:none; z-index:6;}
-  .coach-anim{animation:bob 3s ease-in-out infinite; will-change:transform; transform:translateZ(0);}
-  .puppy-corner svg{width:88px; height:88px; filter:drop-shadow(0 2px 2px rgba(36,59,83,.2));}
+  .coach-anim{animation:bob 3s ease-in-out infinite; will-change:transform;}
+  .puppy-corner svg{width:88px; height:88px;}
   @keyframes bob{50%{transform:translateY(-4px) rotate(-2deg);}}
   .bubble{
     position:absolute; bottom:92px; left:0; min-width:150px; max-width:220px;
@@ -292,8 +292,7 @@
   }
   .goal-frame.go{animation:burstPulse 2.4s ease .6s infinite;}
   @keyframes burstPulse{0%,100%{transform:translateX(-50%) scale(1);opacity:.85;}50%{transform:translateX(-50%) scale(1.12);opacity:1;}}
-  .striker{position:absolute; left:50%; bottom:6px; margin-left:-85px; width:170px; height:auto; z-index:2;
-    filter:drop-shadow(0 6px 10px rgba(20,50,90,.4));
+  .striker{position:absolute; left:50%; bottom:6px; margin-left:-95px; width:190px; height:auto; z-index:2;
     animation:twirl 3s ease-in-out infinite;}
   @keyframes twirl{0%,100%{transform:rotate(-4deg) translateY(0);}50%{transform:rotate(4deg) translateY(-6px);}}
   .ball{position:absolute; left:calc(50% - 17px); bottom:60px; font-size:34px; opacity:0; z-index:3;}
