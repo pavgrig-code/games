@@ -51,7 +51,8 @@
   .c2{left:78%; bottom:-20px; width:20px; height:20px; animation:riseUp 12s linear 3s infinite;}
   @keyframes riseUp{0%{transform:translateY(0);opacity:0;}12%{opacity:.7;}100%{transform:translateY(-110vh);opacity:0;}}
   .title-img{width:min(420px,86vw); height:auto; filter:drop-shadow(0 5px 12px rgba(10,25,60,.5));}
-  .mermaid-hero{width:min(260px,58vw); height:auto; filter:drop-shadow(0 8px 16px rgba(10,25,60,.5)); animation:bob 4s ease-in-out infinite; margin:-4px 0;}
+  .mermaid-wrap{animation:bob 4s ease-in-out infinite; will-change:transform; transform:translateZ(0); margin:-4px 0; line-height:0;}
+  .mermaid-hero{width:min(340px,74vw); height:auto; filter:drop-shadow(0 8px 16px rgba(10,25,60,.5));}
   .name-banner{
     font-weight:700; font-size:20px; color:#5A3A16; letter-spacing:1px;
     background:linear-gradient(180deg,#FBE9C2,#EBD09A); padding:3px 26px; border-radius:8px;
@@ -218,7 +219,8 @@
     60%{transform:translateX(-5px) translateY(var(--fy,0));}80%{transform:translateX(5px) translateY(var(--fy,0));}}
 
   .puppy-corner{position:absolute; left:8px; bottom:6px; width:92px; pointer-events:none; z-index:6;}
-  .puppy-corner svg{width:88px; height:88px; filter:drop-shadow(0 2px 2px rgba(36,59,83,.2)); animation:bob 3s ease-in-out infinite;}
+  .coach-anim{animation:bob 3s ease-in-out infinite; will-change:transform; transform:translateZ(0);}
+  .puppy-corner svg{width:88px; height:88px; filter:drop-shadow(0 2px 2px rgba(36,59,83,.2));}
   @keyframes bob{50%{transform:translateY(-4px) rotate(-2deg);}}
   .bubble{
     position:absolute; bottom:92px; left:0; min-width:150px; max-width:220px;
@@ -401,10 +403,9 @@
 
   <div class="entry-inner">
     <img class="title-img" src="title.png" alt="Avery's Mermaid Math">
-    <img class="mermaid-hero" src="mermaid.png" alt="Avery the mermaid">
+    <div class="mermaid-wrap"><img class="mermaid-hero" src="mermaid.png" alt="Avery the mermaid"></div>
     <div class="top-score hidden" id="topScoreBox">🏆 Best treasure: <span id="topScoreVal">0</span></div>
 
-    <div class="picker-label">Swim speed <span class="pts-hint">faster = more points!</span></div>
     <div class="speed-picker" id="speedPicker">
       <button class="spd on" data-spd="1">🐢 1<small>×1</small></button>
       <button class="spd" data-spd="2">🐟 2<small>×2</small></button>
@@ -440,7 +441,7 @@
     <div id="fallingBrick" class="falling-brick"><span class="ptext"></span></div>
     <div class="puppy-corner">
       <div class="bubble" id="bubble"></div>
-      <svg viewBox="0 0 120 110"><use href="#puppy"/></svg>
+      <div class="coach-anim"><svg viewBox="0 0 120 110"><use href="#puppy"/></svg></div>
     </div>
   </div>
   <div id="answers">
